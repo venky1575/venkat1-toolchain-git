@@ -4,7 +4,7 @@ FROM centos:centos6
 RUN yum -y update; yum -y clean all
 
 ##### Install JDK 1.7 #####
-RUN yum install -y java-1.7.0-openjdk java-1.7.0-openjdk-devel
+RUN yum install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel
 
 ##### Install basic linux tools #####
 RUN yum install -y wget unzip dialog curl sudo lsof vim axel telnet
@@ -40,13 +40,13 @@ RUN yum install -y hbase-master hbase hbase-thrift
 RUN yum install -y oozie oozie-client
 
 ##### Install Spark #####
-RUN yum install -y spark-core spark-master spark-worker spark-history-server spark-python
+RUN yum install -y spark-core spark-history-server spark-python
 
 ##### Install Hive #####
 RUN yum install -y hive hive-metastore hive-hbase
 
 ##### Install Pig #####
-RUN yum install -y pig
+#RUN yum install -y pig
 
 ##### Install Impala #####
 RUN yum install -y impala impala-server impala-state-store impala-catalog impala-shell
@@ -84,13 +84,25 @@ RUN oozie-setup db create -run
 RUN sed -i 's/secret_key=/secret_key=_S@s+D=h;B,s$C%k#H!dMjPmEsSaJR/g' /etc/hue/conf/hue.ini
 
 
-
-
 ##### Make this container SSH friendly #####
 RUN yum -y install openssh-server openssh-clients
 # Start `sshd` to generate host DSA & RSA keys
 RUN service sshd start
 
+
+# Install Apache Kafka
+#RUN cd /opt
+#RUN wget http://www.mirrorservice.org/sites/ftp.apache.org/kafka/0.8.2.1/kafka_2.11-0.8.2.1.tgz
+#RUN  tar zxvf kafka_2.11-0.8.2.1.tgz
+#RUN  cd kafka_2.11-0.8.2.1
+
+###SPARK 2.2.0
+
+ARG SPARK_ARCHIVE=http://d3kbcqa49mib13.cloudfront.net/spark-2.2.0-bin-hadoop2.7.tgz
+RUN curl -s $SPARK_ARCHIVE | tar -xz -C /usr/local/
+
+ENV SPARK_HOME /usr/local/spark-2.2.0-bin-hadoop2.7
+ENV PATH $PATH:$SPARK_HOME/bin
 
 
 
@@ -106,8 +118,8 @@ ADD run.sh /usr/bin/
 
 ADD ojdbc6.jar /opt/
 
-RUN echo "spark.executor.extraClassPath=/opt/ojdbc6.jar | tee -a /etc/spark/conf/spark-defaults.conf"
-RUN echo "spark.driver.extraClassPath=/opt/ojdbc6.jar | tee -a /etc/spark/conf/spark-defaults.conf"
+#RUN echo "spark.executor.extraClassPath=/opt/ojdbc6.jar | tee -a /etc/spark/conf/spark-defaults.conf"
+#RUN echo "spark.driver.extraClassPath=/opt/ojdbc6.jar | tee -a /etc/spark/conf/spark-defaults.conf"
 
 
 CMD ["run.sh"]
